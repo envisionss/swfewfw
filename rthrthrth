@@ -1,26 +1,47 @@
-local imgui = require("imgui") 
+local library = {}
 
-local drag = false
-local drag_offset = Vector2.new(0, 0)
+local gui = Instance.new("ScreenGui")
+gui.Name = "MyGUI" 
+gui.Parent = game.CoreGui
 
-imgui.ShowDemoWindow()
+local frame = Instance.new("Frame")
+frame.Name = "MainFrame"
+frame.Parent = gui
+frame.BackgroundColor3 = Color3.new(0, 0, 0) 
+frame.Size = UDim2.new(0, 200, 0, 150)
+frame.Position = UDim2.new(0.35, 0, 0.35, 0)
 
-imgui.Begin("Draggable Window")
+local dragToggle = nil
+local dragSpeed = 0.25
+local dragStart = nil
+local startPos = nil
 
-if imgui.IsWindowHovered() and imgui.IsMouseClicked(0) then
-  drag = true
-  drag_offset = Vector2.new(imgui.GetMousePos()) - Vector2.new(imgui.GetWindowPos())
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    game:GetService("TweenService"):Create(frame, TweenInfo.new(dragSpeed), {Position = position}):Play()
 end
 
-if drag then
-  imgui.SetWindowPos(Vector2.new(imgui.GetMousePos()) - drag_offset) 
-end
+frame.InputBegan:Connect(function(input) 
+    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+        dragToggle = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragToggle = false
+            end
+        end)
+    end
+end)
 
-if not imgui.IsMouseDown(0) then
-  drag = false
-end
+frame.InputChanged:Connect(function(input) 
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragToggle then
+            updateInput(input)
+        end
+    end
+end)
 
-imgui.Text("This window is draggable!")
-imgui.End()
-
-imgui.Render()
+return library
