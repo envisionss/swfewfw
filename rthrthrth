@@ -1,42 +1,26 @@
-local UIS = game:GetService("UserInputService")
-local draggable = false
-local dragStart = nil
-local startPos = nil
+local imgui = require("imgui") 
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 200) 
-frame.Position = UDim2.new(0.5, -100, 0.5, -100)
-frame.BackgroundColor3 = Color3.new(1, 1, 1)
-frame.BorderSizePixel = 0
-frame.Active = true
+local drag = false
+local drag_offset = Vector2.new(0, 0)
 
-local btn = Instance.new("TextButton", frame)
-btn.Size = UDim2.new(1, 0, 0, 30)
-btn.Text = "Title"
-btn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3) 
-btn.BorderSizePixel = 0
+imgui.ShowDemoWindow()
 
-btn.InputBegan:Connect(function(input)
-  if input.UserInputType == Enum.UserInputType.MouseButton1 then
-    draggable = true
-    dragStart = input.Position
-    startPos = frame.Position
-    
-    input.Changed:Connect(function()
-      if input.UserInputState == Enum.UserInputState.End then
-        draggable = false
-      end
-    end)
-  end
-end)
+imgui.Begin("Draggable Window")
 
-btn.InputChanged:Connect(function(input)
-  if input.UserInputType == Enum.UserInputType.MouseMovement then
-    if draggable then
-      local delta = input.Position - dragStart
-      frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) 
-    end
-  end
-end)
+if imgui.IsWindowHovered() and imgui.IsMouseClicked(0) then
+  drag = true
+  drag_offset = Vector2.new(imgui.GetMousePos()) - Vector2.new(imgui.GetWindowPos())
+end
 
-frame.Parent = game:GetService("CoreGui")
+if drag then
+  imgui.SetWindowPos(Vector2.new(imgui.GetMousePos()) - drag_offset) 
+end
+
+if not imgui.IsMouseDown(0) then
+  drag = false
+end
+
+imgui.Text("This window is draggable!")
+imgui.End()
+
+imgui.Render()
