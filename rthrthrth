@@ -1,0 +1,42 @@
+local UIS = game:GetService("UserInputService")
+local draggable = false
+local dragStart = nil
+local startPos = nil
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 200) 
+frame.Position = UDim2.new(0.5, -100, 0.5, -100)
+frame.BackgroundColor3 = Color3.new(1, 1, 1)
+frame.BorderSizePixel = 0
+frame.Active = true
+
+local btn = Instance.new("TextButton", frame)
+btn.Size = UDim2.new(1, 0, 0, 30)
+btn.Text = "Title"
+btn.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3) 
+btn.BorderSizePixel = 0
+
+btn.InputBegan:Connect(function(input)
+  if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    draggable = true
+    dragStart = input.Position
+    startPos = frame.Position
+    
+    input.Changed:Connect(function()
+      if input.UserInputState == Enum.UserInputState.End then
+        draggable = false
+      end
+    end)
+  end
+end)
+
+btn.InputChanged:Connect(function(input)
+  if input.UserInputType == Enum.UserInputType.MouseMovement then
+    if draggable then
+      local delta = input.Position - dragStart
+      frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) 
+    end
+  end
+end)
+
+frame.Parent = game:GetService("CoreGui")
